@@ -1,15 +1,21 @@
 // require Express application framework
 var express = require('express');
+// require body-parser for json
+var bodyParser = require('body-parser');
 // require Handlebars templating engine for Express
 var exphbs  = require('express-handlebars');
 // require 'request' module that allows to make external HTTP requests
 var request = require('request');
+var { PythonShell } = require('python-shell');
 
 var app = express();
 
 app.set('port', (process.env.PORT || 5000));
 
 app.use(express.static(__dirname + '/public'));
+// for parsing application/json
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }))
 
 // use Handlebars as templating engine instead of Express default one
 app.engine('handlebars', exphbs({defaultLayout: 'base'}));
@@ -17,24 +23,24 @@ app.set('view engine', 'handlebars');
 
 // define the app routes
 app.get('/', function(req, res) {
+  res.render('pages/home');
+});
 
-	// request the data from third party API
-	request(
-    {
-    	method: 'GET',
-    	uri: 'http://mysafeinfo.com/api/data?list=englishmonarchs&format=json'
-   	},
-  	function (error, resp, body) {
-  		// if the response is an error, display the error page
-      if (error) {
-      	res.render('pages/error', { error: err });
-    	}
-    	// otherwise render the home page with the fetched data
-    	else {
-    		res.render('pages/home', { kings: JSON.parse(body) });
-    	}
+app.post('/runCode', function(req, res) {
+  const rawCode = req.body.rawCode;
+  PythonShell.runString(rawCode, null, function (err, output) {
+    console.log(output)
+    if (err) {
+      res.json({
+        output: err.message,
+      });
+    } else {
+      res.json({
+        output,
+      });
     }
-  );
+  });
+
 });
 
 // make a 404 error page

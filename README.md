@@ -1,18 +1,16 @@
-# express-handlebars-starter-app
+# code-share
 
-Node, Express, Handlebars starter app adapted from [Getting Started with Node on Heroku](https://devcenter.heroku.com/articles/getting-started-with-nodejs).
+Real time code editing and execution.
 
-Live Demo on Heroku: [https://melanie-node-js.herokuapp.com/](https://melanie-node-js.herokuapp.com/)
-
-## Running Locally
+## Running Locally in Dev Mode
 
 Make sure you have [Node.js](http://nodejs.org/) and the [Heroku CLI](https://cli.heroku.com/) installed.
 
+Dev mode runs the express serve with Nodemon so it will auto-restart when it detects file save changes.
+
 ```sh
-$ git clone git@github.com:heroku/node-js-getting-started.git # or clone your own fork
-$ cd node-js-getting-started
 $ npm install
-$ npm start
+$ npm run dev
 ```
 
 Your app should now be running on [localhost:5000](http://localhost:5000/).

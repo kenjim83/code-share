@@ -1,3 +1,18 @@
-.home__code-editor {
+.home__code-editor,
+.home__code-output {
   width: 100%;
+}
+
+.home__code-output {
+  min-height: 300px;
+}
+
+#navbar {
+  margin-bottom: 0;
+}
+
+.main-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
