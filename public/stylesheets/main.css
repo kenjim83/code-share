@@ -3,8 +3,22 @@
   width: 100%;
 }
 
-.home__code-output {
+pre.home__code-output {
+  position: relative;
   min-height: 300px;
+  border-radius: 0;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  border-left: 0;
+  border-right: 0;
+}
+
+pre.home__code-output:after {
+  content: "output";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  opacity: 0.5;
 }
 
 #navbar {
@@ -15,4 +29,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.CodeMirror {
+  min-height: 400px;
+}
+
+.run-btn-nav-area {
+  color: #fff;
+  padding: 8px 15px;
 }

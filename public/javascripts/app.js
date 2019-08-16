@@ -2,8 +2,8 @@
 
 const RUN_BUTTON = "#run-button";
 const OUTPUT_TEXTAREA = "#code-output";
-const INITIAL_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
-
+const PYTHON_EXAMPLE_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
+const CODE_MIRROR_ENTRY_ID = "code-mirror-entry";
 
 const app = {
   init() {
@@ -13,10 +13,10 @@ const app = {
       .keydown(this.onKeyPress.bind(this))
       .keypress(this.onKeyPress.bind(this));
 
-    this.codeMirror = CodeMirror(document.getElementById('code-mirror-entry'), {
-      value: INITIAL_CODE,
+    this.codeMirror = CodeMirror(document.getElementById(CODE_MIRROR_ENTRY_ID), {
+      value: PYTHON_EXAMPLE_CODE,
       lineNumbers: true,
-      mode: "python",
+      mode: "text/x-python",
     });
   },
 
@@ -25,7 +25,10 @@ const app = {
 
     this.sendCodeToServer({ rawCode })
       .then(resp => {
-        $(OUTPUT_TEXTAREA).text(resp.output);
+        const output = Array.isArray(resp.output)
+          ? resp.output.join("\n")
+          : resp.output;
+        $(OUTPUT_TEXTAREA).text(output);
       })
       .fail(resp => {
         $(OUTPUT_TEXTAREA).text(resp.responseText);

@@ -1,16 +1,16 @@
-// require Express application framework
-var express = require('express');
-// require body-parser for json
-var bodyParser = require('body-parser');
-// require Handlebars templating engine for Express
-var exphbs  = require('express-handlebars');
-// require 'request' module that allows to make external HTTP requests
-var request = require('request');
-var { PythonShell } = require('python-shell');
+const express = require('express');
+const WebSocket = require('ws');
+const bodyParser = require('body-parser');
+const exphbs  = require('express-handlebars');
+const request = require('request');
+const { PythonShell } = require('python-shell');
+const HTTP_PORT = 5000;
+const WS_PORT = 8000;
 
-var app = express();
+const app = express();
+app.set('port', (process.env.PORT || HTTP_PORT));
 
-app.set('port', (process.env.PORT || 5000));
+const wss = new WebSocket.Server({ port: WS_PORT });
 
 app.use(express.static(__dirname + '/public'));
 // for parsing application/json
@@ -41,6 +41,14 @@ app.post('/runCode', function(req, res) {
     }
   });
 
+});
+
+wss.on('connection', function connection(ws) {
+  ws.on('message', function incoming(message) {
+    console.log('received: %s', message);
+  });
+
+  ws.send('something');
 });
 
 // make a 404 error page

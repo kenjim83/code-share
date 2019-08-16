@@ -15,7 +15,8 @@
     "express": "4.15.2",
     "express-handlebars": "3.0.0",
     "python-shell": "^1.0.8",
-    "request": "2.81.0"
+    "request": "2.81.0",
+    "ws": "^7.1.2"
   },
   "repository": {
     "type": "git",
