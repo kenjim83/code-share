@@ -7,6 +7,7 @@ const { PythonShell } = require('python-shell');
 
 const HTTP_PORT = 5000;
 
+const PYTHON_EXAMPLE_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
 
 /* WebSocket message protocol
  * "<2 char event code>: <data>"
@@ -40,23 +41,29 @@ function heartbeat() {
   this.isAlive = true;
 }
 
+// Store code serve side to push current stte of code to new connections
+let serverCode = PYTHON_EXAMPLE_CODE;
+
 // This event fires when a new ws connection is established
 wss.on('connection', function connection(ws) {
+  console.log(`clients [${wss.clients.size}]: ${getAllClientsReadyStates()}`);
+
   // wire up heartbeats
   ws.isAlive = true;
   ws.on('pong', heartbeat);
 
-  console.log(`clients [${wss.clients.size}]: ${getAllClientsReadyStates()}`);
+  // push existing code to new clients
+  ws.send(`${UPDATE_CODE}${serverCode}`);
 
   ws.on('message', function incoming(message) {
-    console.log('received: %s', message);
+    // console.log('received: %s', message);
 
     const eventCode = message.slice(0,4);
     const data = message.slice(4);
 
     if (eventCode === EXEC_CODE) {
       PythonShell.runString(data, null, function (err, output) {
-        console.log({output})
+        // console.log({output})
         let outputToClient = "";
         if (err) {
           outputToClient = err.message;
@@ -67,17 +74,20 @@ wss.on('connection', function connection(ws) {
         // update ouput on all open clients
         wss.clients.forEach(client => {
           if (client.readyState === WebSocket.OPEN) {
-            client.send(UPDATE_OUTPUT + outputToClient);
+            client.send(`${UPDATE_OUTPUT}${outputToClient}`);
           }
         });
       });
     }
 
     if (eventCode === UPDATE_CODE) {
+      // update server code
+      serverCode = data;
+
       // update code for all *other* open clients
       wss.clients.forEach(client => {
         if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(UPDATE_CODE + data);
+          client.send(`${UPDATE_CODE}${data}`);
         }
       });
     }

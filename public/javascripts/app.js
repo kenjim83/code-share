@@ -2,7 +2,6 @@
 
 const RUN_BUTTON = "#run-button";
 const OUTPUT_TEXTAREA = "#code-output";
-const PYTHON_EXAMPLE_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
 const CODE_MIRROR_ENTRY_ID = "code-mirror-entry";
 const DEV_WS_HOST = "ws://localhost:5000";
 const PROD_WS_HOST = "wss://codershare.herokuapp.com";
@@ -22,7 +21,7 @@ const app = {
       .keypress(this.onKeyPress.bind(this));
 
     this.codeMirror = CodeMirror(document.getElementById(CODE_MIRROR_ENTRY_ID), {
-      value: PYTHON_EXAMPLE_CODE,
+      value: "",
       lineNumbers: true,
       mode: "python",
     });
