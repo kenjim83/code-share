@@ -4,8 +4,8 @@ const RUN_BUTTON = "#run-button";
 const OUTPUT_TEXTAREA = "#code-output";
 const PYTHON_EXAMPLE_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
 const CODE_MIRROR_ENTRY_ID = "code-mirror-entry";
-const DEV_WS_HOST = "ws://localhost:8080";
-const PROD_WS_HOST = "wss://codershare.herokuapp.com:8080";
+const DEV_WS_HOST = "ws://localhost:5000";
+const PROD_WS_HOST = "wss://codershare.herokuapp.com";
 const WS_HOST = window.location.hostname === 'localhost' ? DEV_WS_HOST : PROD_WS_HOST;
 const CHANGE_FROM_SET_VALUE = "setValue";
 

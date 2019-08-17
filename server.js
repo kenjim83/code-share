@@ -1,4 +1,5 @@
 const express = require('express');
+const http = require('http');
 const WebSocket = require('ws');
 const bodyParser = require('body-parser');
 const exphbs  = require('express-handlebars');
@@ -7,7 +8,7 @@ const { PythonShell } = require('python-shell');
 const uuid = require('uuid/v1');
 
 const HTTP_PORT = 5000;
-const WS_PORT = 8000;
+// const WS_PORT = 8080;
 
 
 /* WebSocket message protocol
@@ -24,9 +25,10 @@ const OPEN_READY_STATE = 1; // 'readyState' when socket connection is open
 const CLOSED_READY_STATE = 3; // 'readyState' when socket connection is closed
 
 const app = express();
+const httpServer = http.createServer(app);
 app.set('port', (process.env.PORT || HTTP_PORT));
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ server: httpServer });
 
 const wsClients = {};
 
@@ -115,7 +117,4 @@ app.use(function (err, req, res) {
   res.render('pages/error', { error: err });
 });
 
-app.listen(app.get('port'), function() {
-  console.log('Node app is running on port', app.get('port'));
-  console.log('WebSockets running on port', WS_PORT);
-});
+httpServer.listen(HTTP_PORT);
