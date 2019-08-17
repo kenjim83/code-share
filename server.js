@@ -18,8 +18,6 @@ const HTTP_PORT = 5000;
 const EXEC_CODE = "XC: "; // Execute code - Run code then update on all clients
 const UPDATE_CODE = "UC: "; // Update code - Update code on all clients
 const UPDATE_OUTPUT = "UO: "; // Update output - Update executed code output on all clients
-const OPEN_READY_STATE = 1; // 'readyState' when socket connection is open
-const CLOSED_READY_STATE = 3; // 'readyState' when socket connection is closed
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -27,29 +25,28 @@ app.set('port', (process.env.PORT || HTTP_PORT));
 
 const wss = new WebSocket.Server({ server: httpServer });
 
-const wsClients = [];
+function getAllClientsReadyStates() {
+  // wss.clients is a Set, so .map is not available. use .forEach.
+  const readyStates = [];
+  wss.clients.forEach(({ readyState }) => {
+    readyStates.push(readyState);
+  });
+  return readyStates;
+}
 
-function removeClosedConnections(wsClients) {
-  // iterate through connections in reverse so as to not mess up index when removing
-  for (var i = wsClients.length -1; i >= 0; i--) {
-    const client = wsClients[i];
-    if (client.readyState === CLOSED_READY_STATE) {
-      wsClients.splice(i, 1);
-    }
-  }
+function noop() {}
+
+function heartbeat() {
+  this.isAlive = true;
 }
 
 // This event fires when a new ws connection is established
 wss.on('connection', function connection(ws) {
-  // Save client instance to later compare for this particular connection
-  const userConnection = ws;
-  // Store with all clients in array
-  wsClients.push(ws);
-  // Remove any disconnected client connections. Every page refresh closes previous connection and open a new one.
-  // Therefore we have to remove any closed ones from our 'wsClients' array.
-  removeClosedConnections(wsClients);
+  // wire up heartbeats
+  ws.isAlive = true;
+  ws.on('pong', heartbeat);
 
-  console.log(`clients (${wsClients.length}): ${wsClients.map(({ readyState }) => readyState).join(', ')}`);
+  console.log(`clients [${wss.clients.size}]: ${getAllClientsReadyStates()}`);
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
@@ -66,16 +63,20 @@ wss.on('connection', function connection(ws) {
         } else if (output) {
           outputToClient = Array.isArray(output) ? output.join('\n') : output;
         }
-        wsClients.forEach(client => {
-          client.send(UPDATE_OUTPUT + outputToClient);
+
+        // update ouput on all open clients
+        wss.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(UPDATE_OUTPUT + outputToClient);
+          }
         });
       });
     }
 
     if (eventCode === UPDATE_CODE) {
-      wsClients.forEach(client => {
-        // only update code for *other* clients
-        if (userConnection !== client) {
+      // update code for all *other* open clients
+      wss.clients.forEach(client => {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
           client.send(UPDATE_CODE + data);
         }
       });
@@ -85,8 +86,21 @@ wss.on('connection', function connection(ws) {
 });
 
 wss.on('close', function close(ws) {
-  console.log('close!')
+  console.log('wss closed!')
 });
+
+// Ping all clients every 30 secs to prevent automatic closing of idle connections
+// https://www.npmjs.com/package/ws#how-to-detect-and-close-broken-connections
+const interval = setInterval(function ping() {
+  wss.clients.forEach(client => {
+    if (client.isAlive === false) {
+      return client.terminate();
+    }
+
+    client.isAlive = false;
+    client.ping(noop);
+  });
+}, 30000);
 
 app.use(express.static(__dirname + '/public'));
 // for parsing application/json
