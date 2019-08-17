@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Real time code editing and execution.",
   "engines": {
-    "node": "6.11.1"
+    "node": "10.3.0"
   },
   "main": "server.js",
   "scripts": {
