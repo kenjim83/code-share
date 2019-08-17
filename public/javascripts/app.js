@@ -5,6 +5,8 @@ const OUTPUT_TEXTAREA = "#code-output";
 const PYTHON_EXAMPLE_CODE = "def sayHello():\n  print(\"hello world!\")\n\nsayHello()";
 const CODE_MIRROR_ENTRY_ID = "code-mirror-entry";
 const DEV_WS_HOST = "ws://localhost:8080";
+const PROD_WS_HOST = "wss://codershare.herokuapp.com:8080";
+const WS_HOST = window.location.hostname === 'localhost' ? DEV_WS_HOST : PROD_WS_HOST;
 const CHANGE_FROM_SET_VALUE = "setValue";
 
 const EXEC_CODE = "XC: "; // Execute code - Run code then update on all clients
@@ -27,7 +29,7 @@ const app = {
 
     this.$outputTextarea = $(OUTPUT_TEXTAREA);
 
-    this.wsClient = new WebSocket(DEV_WS_HOST);
+    this.wsClient = new WebSocket(WS_HOST);
 
     this.codeMirror.on('change', (instance, { origin }) => {
       if (origin !== CHANGE_FROM_SET_VALUE) {
