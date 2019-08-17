@@ -3,12 +3,9 @@ const http = require('http');
 const WebSocket = require('ws');
 const bodyParser = require('body-parser');
 const exphbs  = require('express-handlebars');
-const request = require('request');
 const { PythonShell } = require('python-shell');
-const uuid = require('uuid/v1');
 
 const HTTP_PORT = 5000;
-// const WS_PORT = 8080;
 
 
 /* WebSocket message protocol
@@ -30,27 +27,29 @@ app.set('port', (process.env.PORT || HTTP_PORT));
 
 const wss = new WebSocket.Server({ server: httpServer });
 
-const wsClients = {};
+const wsClients = [];
 
 function removeClosedConnections(wsClients) {
-  Object.keys(wsClients).forEach(key => {
-    const client = wsClients[key];
-    if (client.readyState !== OPEN_READY_STATE) {
-      // close connection
-      client.close();
-      delete wsClients[key];
+  // iterate through connections in reverse so as to not mess up index when removing
+  for (var i = wsClients.length -1; i >= 0; i--) {
+    const client = wsClients[i];
+    if (client.readyState === CLOSED_READY_STATE) {
+      wsClients.splice(i, 1);
     }
-  })
+  }
 }
 
+// This event fires when a new ws connection is established
 wss.on('connection', function connection(ws) {
-  // save new ws connect in cache with random uuid as key
-  const userId = uuid();
-  wsClients[userId] = ws;
-  // remove any disconnected client connections. every page refresh closes previous connection.
-  removeClosedConnections(wsClients)
-  ;
-  console.log({clients: Object.keys(wsClients)});
+  // Save client instance to later compare for this particular connection
+  const userConnection = ws;
+  // Store with all clients in array
+  wsClients.push(ws);
+  // Remove any disconnected client connections. Every page refresh closes previous connection and open a new one.
+  // Therefore we have to remove any closed ones from our 'wsClients' array.
+  removeClosedConnections(wsClients);
+
+  console.log(`clients (${wsClients.length}): ${wsClients.map(({ readyState }) => readyState).join(', ')}`);
 
   ws.on('message', function incoming(message) {
     console.log('received: %s', message);
@@ -67,19 +66,17 @@ wss.on('connection', function connection(ws) {
         } else if (output) {
           outputToClient = Array.isArray(output) ? output.join('\n') : output;
         }
-        Object.keys(wsClients).forEach(currUserId => {
-          const wsClient = wsClients[currUserId];
-          wsClient.send(UPDATE_OUTPUT + outputToClient);
+        wsClients.forEach(client => {
+          client.send(UPDATE_OUTPUT + outputToClient);
         });
       });
     }
 
     if (eventCode === UPDATE_CODE) {
-      Object.keys(wsClients).forEach(currUserId => {
+      wsClients.forEach(client => {
         // only update code for *other* clients
-        if (currUserId !== userId) {
-          const wsClient = wsClients[currUserId];
-          wsClient.send(UPDATE_CODE + data);
+        if (userConnection !== client) {
+          client.send(UPDATE_CODE + data);
         }
       });
     }
