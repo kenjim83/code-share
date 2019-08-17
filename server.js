@@ -117,4 +117,4 @@ app.use(function (err, req, res) {
   res.render('pages/error', { error: err });
 });
 
-httpServer.listen(HTTP_PORT);
+httpServer.listen(app.get('port'));
