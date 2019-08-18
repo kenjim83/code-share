@@ -22,6 +22,7 @@ const app = {
       value: "",
       lineNumbers: true,
       mode: "python",
+      theme: "monokai",
     });
 
     this.$outputTextarea = $(OUTPUT_TEXTAREA);
