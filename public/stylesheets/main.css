@@ -9,6 +9,10 @@
   border-radius: 0;
 }
 
+.navbar-header {
+  min-width: 200px;
+}
+
 #code-mirror-entry {
   z-index: -1;
   position: absolute;
